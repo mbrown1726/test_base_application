@@ -1,0 +1,79 @@
+service: test-base-application
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  environment:
+    TABLE_NAME: !Ref ItemsTable
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Scan
+            - dynamodb:Query
+          Resource: !GetAtt ItemsTable.Arn
+
+functions:
+  hello:
+    handler: src/handlers/hello.handler
+    description: Returns a hello world response
+    events:
+      - httpApi:
+          path: /hello
+          method: GET
+
+  createItem:
+    handler: src/handlers/items.create
+    description: Creates an item in DynamoDB
+    events:
+      - httpApi:
+          path: /items
+          method: POST
+
+  getItem:
+    handler: src/handlers/items.get
+    description: Gets an item from DynamoDB
+    events:
+      - httpApi:
+          path: /items/{id}
+          method: GET
+
+resources:
+  Resources:
+    ItemsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-items
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+  Outputs:
+    ApiEndpoint:
+      Description: HTTP API endpoint URL
+      Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+    TableName:
+      Description: DynamoDB table name
+      Value: !Ref ItemsTable
+
+plugins: []
+
+package:
+  individually: false
+  exclude:
+    - .git/**
+    - .idea/**
+    - node_modules/.cache/**

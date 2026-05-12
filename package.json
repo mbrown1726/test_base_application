@@ -1,0 +1,20 @@
+{
+  "name": "test-base-application",
+  "version": "1.0.0",
+  "description": "Simple Serverless Framework application",
+  "main": "src/handlers/hello.js",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "deploy:prod": "serverless deploy --stage prod",
+    "remove": "serverless remove",
+    "invoke": "serverless invoke -f hello",
+    "logs": "serverless logs -f hello"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0"
+  },
+  "devDependencies": {
+    "serverless": "^3.0.0"
+  }
+}
